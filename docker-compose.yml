@@ -1,2 +1,64 @@
 version: '1.0'
 
+services:
+  mysql:
+    image: mysql:8.3.0
+    container_name: mysql-8.3.0
+    ports:
+      - '3306:3306'
+    expose:
+      - '3306'
+    volumes:
+      - mysql-db:/var/lib/mysql
+    environment:
+      MYSQL_ROOT_PASSWORD: root
+      MYSQL_DATABASE: auth_db
+      MYSQL_USER: user
+      MYSQL_PASSWORD: user@123
+    healthcheck:
+      test: ["CMD", "mysqladmin", "ping", "-h", "localhost"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+
+  kong:
+    image: kong:2.5.0
+    environment:
+      KONG_DATABASE: "off"
+      KONG_DECLARATIVE_CONFIG: "/usr/local/kong/declarative/kong.yml"
+      KONG_PROXY_ACCESS_LOG: "/dev/stdout"
+      KONG_ADMIN_ACCESS_LOG: "/dev/stdout"
+      KONG_PROXY_ERROR_LOG: "/dev/stderr"
+      KONG_ADMIN_ERROR_LOG: "/dev/stderr"
+      KONG_ADMIN_LISTEN: "0.0.0.0:8001, 0.0.0.0:8444 ssl"
+      KONG_PROXY_LISTEN: 0.0.0.0:8000, 0.0.0.0:8443 ssl
+      KONG_LOG_LEVEL: "debug"
+
+    volumes:
+      - "./kong/kong.yml:/usr/local/kong/declarative/kong.yml"
+
+    ports:
+      - "8000:8000" # Kong Proxy (Public API Gateway)
+      - "8443:8443" # Kong Proxy (SSL)
+      - "8001:8001" # Kong Admin API
+      - "8002:8002" # GUI For Http
+      - "8445:8445" # GUI For Https
+      - "8444:8444" # Kong Admin API (SSL)
+
+    networks:
+      - my-network
+
+
+
+
+
+      
+
+networks:
+  my-network:
+    driver: bridge
+
+
+volumes:
+  mysql-db:
+    driver: local
