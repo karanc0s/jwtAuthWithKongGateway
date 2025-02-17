@@ -38,8 +38,17 @@ services:
       SPRING_DATASOURCE_USERNAME: "user"
       SPRING_DATASOURCE_PASSWORD: "user@123"
 
+  prod-service:
+    build:
+      context: productservice
+      dockerfile: Dockerfile
+    ports:
+      - "8082:8082"
+    networks:
+      - my-network
+
   kong:
-    image: kong:2.5.0
+    image: kong:latest
     environment:
       KONG_DATABASE: "off"
       KONG_DECLARATIVE_CONFIG: "/usr/local/kong/declarative/kong_config.yml"
@@ -50,9 +59,12 @@ services:
       KONG_ADMIN_LISTEN: "0.0.0.0:8001, 0.0.0.0:8444 ssl"
       KONG_PROXY_LISTEN: 0.0.0.0:8000, 0.0.0.0:8443 ssl
       KONG_LOG_LEVEL: "debug"
+      KONG_LUA_PACKAGE_PATH: "/usr/local/share/lua/5.1/?.lua;;"
+      KONG_PLUGINS: "plugin_jwt_auth"
 
     volumes:
       - "./kong/kong_config.yml:/usr/local/kong/declarative/kong_config.yml"
+      - "./kong/my_plugins:/usr/local/share/lua/5.1/kong/plugins"
 
     ports:
       - "8000:8000" # Kong Proxy (Public API Gateway)

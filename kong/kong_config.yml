@@ -8,3 +8,15 @@ services:
         paths:
           - /auth
         strip_path: false
+
+  - name: products-service
+    url: http://prod-service:8082
+    routes:
+      - name: prods
+        paths:
+          - /prod
+        strip_path: false
+    plugins:
+      - name: plugin_jwt_auth
+        config:
+          auth_service_url: "http://auth-service:8081"
