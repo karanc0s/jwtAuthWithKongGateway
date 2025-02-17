@@ -6,8 +6,8 @@ services:
     container_name: mysql-8.3.0
     ports:
       - '3306:3306'
-    expose:
-      - '3306'
+    networks:
+      - my-network
     volumes:
       - mysql-db:/var/lib/mysql
     environment:
@@ -21,11 +21,28 @@ services:
       timeout: 5s
       retries: 5
 
+  auth-service:
+    build:
+      context: authservice
+      dockerfile: Dockerfile
+    ports:
+      - "8081:8081"
+    networks:
+      - my-network
+    depends_on:
+      mysql:
+        condition: service_healthy
+
+    environment:
+      SPRING_DATASOURCE_URL: jdbc:mysql://mysql:3306/auth_db?useSSL=false&allowPublicKeyRetrieval=true
+      SPRING_DATASOURCE_USERNAME: "user"
+      SPRING_DATASOURCE_PASSWORD: "user@123"
+
   kong:
     image: kong:2.5.0
     environment:
       KONG_DATABASE: "off"
-      KONG_DECLARATIVE_CONFIG: "/usr/local/kong/declarative/kong.yml"
+      KONG_DECLARATIVE_CONFIG: "/usr/local/kong/declarative/kong_config.yml"
       KONG_PROXY_ACCESS_LOG: "/dev/stdout"
       KONG_ADMIN_ACCESS_LOG: "/dev/stdout"
       KONG_PROXY_ERROR_LOG: "/dev/stderr"
@@ -35,7 +52,7 @@ services:
       KONG_LOG_LEVEL: "debug"
 
     volumes:
-      - "./kong/kong.yml:/usr/local/kong/declarative/kong.yml"
+      - "./kong/kong_config.yml:/usr/local/kong/declarative/kong_config.yml"
 
     ports:
       - "8000:8000" # Kong Proxy (Public API Gateway)
@@ -52,7 +69,7 @@ services:
 
 
 
-      
+
 
 networks:
   my-network:
