@@ -19,4 +19,4 @@ services:
     plugins:
       - name: plugin_jwt_auth
         config:
-          auth_service_url: "http://auth-service:8081"
+          auth_service_url: "http://auth-service:8081/auth/validate"

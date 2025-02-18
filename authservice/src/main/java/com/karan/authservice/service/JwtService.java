@@ -29,6 +29,10 @@ public class JwtService {
         return getClaims(token , Claims::getExpiration);
     }
 
+    public String extractTokenType(String token){
+        return getClaims( token , claims -> claims.get("TOKEN_TYPE")).toString();
+    }
+
     public boolean validateToken(String token , String principalUsername) {
         final String username = extractUserName(token);
         return username.equals(principalUsername) && !isTokenExpired(token);

@@ -4,10 +4,7 @@ import com.karan.authservice.dto.AuthRequestDTO;
 import com.karan.authservice.dto.AuthResponseDTO;
 import com.karan.authservice.entities.RefreshToken;
 import com.karan.authservice.entities.UserCreds;
-import com.karan.authservice.exception.AccessTokenExpiredException;
-import com.karan.authservice.exception.AlreadyExistsException;
-import com.karan.authservice.exception.BadCredentialsException;
-import com.karan.authservice.exception.ResourceNotFound;
+import com.karan.authservice.exception.*;
 import com.karan.authservice.repository.UserCredRepository;
 import lombok.AllArgsConstructor;
 import org.springframework.stereotype.Service;
@@ -71,8 +68,15 @@ public class AuthService {
 
     public String validateToken(String token) {
         if(jwtService.isTokenExpired(token)){
+            System.out.println("adfadfadfasdfasdf");
             throw new AccessTokenExpiredException("Token is expired");
         }
+        String tokenType = jwtService.extractTokenType(token);
+        System.out.println("TOKEN TYPE: " + tokenType);
+        if(!tokenType.equals("ACCESS_TOKEN")){
+            throw new InvalidTokenException("Invalid token");
+        }
+
         String username = jwtService.extractUserName(token);
         Optional<UserCreds> optionalUserCreds = userCredRepository.findByUsername(username);
         if(optionalUserCreds.isEmpty()){
@@ -80,4 +84,5 @@ public class AuthService {
         }
         return optionalUserCreds.get().getUserId();
     }
+
 }
